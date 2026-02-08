@@ -10,6 +10,7 @@ use spl_transfer_hook_interface::{
 
 mod instructions;
 mod state;
+mod error;
 
 
 declare_id!("7cwdqRZ1Ap8ano7Vsdwk9NfkB26tWf8bSba3Bvb2G6JM");
@@ -22,8 +23,12 @@ pub mod challenge1 {
         ctx.accounts.initialize(bump)
     }
 
-    pub fn add_to_whitelist(ctx: Context<AddToWhitelist>, user: Pubkey) -> Result<()> {
-        ctx.accounts.add_to_whitelist(user)
+    pub fn add_to_whitelist(ctx: Context<AddToWhitelist>, max_amount: u64, bumps: AddToWhitelistBumps) -> Result<()> {
+        ctx.accounts.add_to_whitelist(max_amount, &bumps)
+    }
+
+    pub fn remove_from_whitelist(ctx: Context<RemoveFromWhitelist>) -> Result<()> {
+        ctx.accounts.remove_from_whitelist()
     }
 
     pub fn deposit(ctx: Context<Deposit>, amount: u64) -> Result<()> {

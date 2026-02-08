@@ -10,4 +10,16 @@ pub enum VaultError {
 
     #[msg("Amount exceeds limit")]
     AmountExceedsLimit,
+
+    #[msg("Invalid vault token account")]
+    InvalidVaultTokenAccount,
+
+    #[msg("Invalid mint")]
+    InvalidMint,
+
+    #[msg("Invalid owner")]
+    InvalidOwner,
+
+    #[msg("Invalid amount")]
+    InvalidAmount,
 }

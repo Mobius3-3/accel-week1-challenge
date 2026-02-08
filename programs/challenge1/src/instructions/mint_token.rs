@@ -15,7 +15,7 @@ pub struct TokenFactory<'info> {
     #[account(
         init,
         payer = user,
-        mint::decimals = 9,
+        mint::decimals = 6,
         mint::authority = user,
         mint::token_program = token_program,
     )]
