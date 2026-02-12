@@ -1,5 +1,18 @@
-pub mod whitelist_entry;
-pub mod vault_state;
+use anchor_lang::prelude::*;
 
-pub use whitelist_entry::*;
-pub use vault_state::*;
+#[account]
+#[derive(InitSpace)]
+pub struct User {
+    pub balance: u64,
+    pub whitelisted: bool,
+    pub bump: u8,
+}
+
+#[account]
+#[derive(InitSpace)]
+pub struct VaultConfig {
+    pub admin: Pubkey,
+    pub mint: Pubkey,
+    pub vault_ta: Pubkey,
+    pub bump: u8,
+}

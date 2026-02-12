@@ -2,24 +2,14 @@ use anchor_lang::prelude::*;
 
 #[error_code]
 pub enum VaultError {
-    #[msg("Unauthorized access")]
-    Unauthorized,
-
-    #[msg("Not whitelisted")]
-    NotWhitelisted,
-
-    #[msg("Amount exceeds limit")]
-    AmountExceedsLimit,
-
-    #[msg("Invalid vault token account")]
-    InvalidVaultTokenAccount,
-
-    #[msg("Invalid mint")]
-    InvalidMint,
-
-    #[msg("Invalid owner")]
-    InvalidOwner,
-
-    #[msg("Invalid amount")]
-    InvalidAmount,
+    #[msg("Arithmetic Overflow")]
+    ArithmeticError,
+    #[msg("Insufficient Balance")]
+    InsufficientBalance,
+    #[msg("Required Memo Not Found")]
+    MemoNotFound,
+    #[msg("Invalid Memo Format")]
+    InvalidMemo,
+    #[msg("Required Transfer Not Found")]
+    TransferNotFound,
 }

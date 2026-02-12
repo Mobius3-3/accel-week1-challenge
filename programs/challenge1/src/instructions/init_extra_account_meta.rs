@@ -6,6 +6,8 @@ use spl_tlv_account_resolution::{
     seeds::Seed,
 };
 
+use crate::ID;
+
 
 #[derive(Accounts)]
 pub struct InitializeExtraAccountMetaList<'info> {
@@ -29,27 +31,22 @@ pub struct InitializeExtraAccountMetaList<'info> {
 
 impl<'info> InitializeExtraAccountMetaList<'info> {
     pub fn extra_account_metas() -> Result<Vec<ExtraAccountMeta>> {
-        Ok(vec![
-            // VaultState PDA (derived from mint)
-            ExtraAccountMeta::new_with_seeds(
-                &[
-                    Seed::Literal { bytes: b"vault_state".to_vec() },
-                    Seed::AccountKey { index: 1 }, // mint
-                ],
-                false,
-                false,
-            ).unwrap(),
+        let (vault_config_pda, _bump) = Pubkey::find_program_address(&[b"vault-config"], &ID);
+        let vault_config_meta =
+            ExtraAccountMeta::new_with_pubkey(&vault_config_pda.to_bytes().into(), false, false).unwrap();
+        let user_meta = ExtraAccountMeta::new_with_seeds(
+            &[
+                Seed::Literal {
+                    bytes: b"user".to_vec(),
+                },
+                Seed::AccountKey { index: 3 }, // index 3= owner
+            ],
+            false, // is_signer
+            false, // is_writable
+        )
+        .unwrap();
+        let account_metas = vec![user_meta, vault_config_meta];
 
-            // Whitelist PDA (derived from vault_state + user)
-            ExtraAccountMeta::new_with_seeds(
-                &[
-                    Seed::Literal { bytes: b"whitelist".to_vec() },
-                    Seed::AccountKey { index: 0 }, // vault_state (resolved above)
-                    Seed::AccountKey { index: 3 }, // user / authority
-                ],
-                false,
-                false,
-            ).unwrap(),
-        ])
+        Ok(account_metas)
     }
 }

@@ -1,61 +1,47 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token_interface::{Mint, TokenInterface};
-use spl_tlv_account_resolution::{
-    state::ExtraAccountMetaList,
-    account::ExtraAccountMeta,
-    seeds::Seed,
+use anchor_spl::{
+    associated_token::AssociatedToken,
+    token_2022::MintTo,
+    token_interface::{self, Mint, TokenAccount, TokenInterface},
 };
-use spl_transfer_hook_interface::instruction::ExecuteInstruction;
 
 #[derive(Accounts)]
-pub struct TokenFactory<'info> {
+pub struct MintToken<'info> {
     #[account(mut)]
-    pub user: Signer<'info>,
+    pub admin: Signer<'info>,
 
-    #[account(
-        init,
-        payer = user,
-        mint::decimals = 6,
-        mint::authority = user,
-        mint::token_program = token_program,
-    )]
+    #[account(mut)]
+    pub user: SystemAccount<'info>,
+
+    #[account(mut)]
     pub mint: InterfaceAccount<'info, Mint>,
 
-    /// CHECK: PDA storing extra-account resolution rules for the transfer hook
     #[account(
-        init,
-        payer = user,
-        space = ExtraAccountMetaList::size_of(1).unwrap(),
-        seeds = [b"extra-account-metas", mint.key().as_ref()],
-        bump
+        init_if_needed,
+        payer = admin,
+        associated_token::mint = mint,
+        associated_token::authority = user,
+        associated_token::token_program = token_program,
     )]
-    pub extra_account_meta_list: AccountInfo<'info>,
+    pub user_ata: InterfaceAccount<'info, TokenAccount>,
 
     pub system_program: Program<'info, System>,
     pub token_program: Interface<'info, TokenInterface>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
 }
 
-impl<'info> TokenFactory<'info> {
-    pub fn init_mint(&mut self) -> Result<()> {
-        // Require exactly ONE extra account:
-        // PDA("whitelist", owner)
-        let metas = vec![
-            ExtraAccountMeta::new_with_seeds(
-                &[
-                    Seed::Literal { bytes: b"whitelist".to_vec() },
-                    // OWNER of the source token account
-                    Seed::AccountKey { index: 3 }, // index 3 is the owner
-                ],
-                false, // not signer
-                false, // not writable
-            ).unwrap(),
-        ];
+impl<'info> MintToken<'info> {
+    pub fn mint(&mut self, amount: u64) -> Result<()> {
+        let cpi = CpiContext::new(
+            self.token_program.to_account_info(),
+            MintTo {
+                mint: self.mint.to_account_info(),
+                to: self.user_ata.to_account_info(),
+                authority: self.admin.to_account_info(),
+            },
+        );
 
-        ExtraAccountMetaList::init::<ExecuteInstruction>(
-            &mut self.extra_account_meta_list.try_borrow_mut_data()?,
-            &metas,
-        ).unwrap();
-
+        token_interface::mint_to(cpi, amount)?;
         Ok(())
     }
 }
